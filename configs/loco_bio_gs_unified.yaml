@@ -1,0 +1,156 @@
+################################################################################
+# main sim configs
+################################################################################
+engine: raisim # Options- [raisim, pybullet] 
+name: "loco_bio"
+
+time_steps:
+  simulation: 0.002
+  control_ll: 0.002
+  loco_policy: 0.002
+  gs_policy: 0.01
+  command: 4
+
+models:
+  ground: "/plane/plane.urdf"
+  robot: "/a1/urdf/a1.urdf"
+
+robot:
+  name: "a1"
+  ctrl_mode: "simple_PD_control" # only simple PD control currently available
+  fixed_base: False
+  nominal_base_position: [0., 0., 0.31]
+  nominal_base_orientation: [1., 0., 0., 0.]  # Hz
+  use_state_estimator: True
+  base_name: "floating_base"
+
+  # Default in RaiSim
+  joint_order:
+    [
+    "FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", 
+    "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint", 
+    "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint", 
+    "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint", 
+    ]
+
+  limb_names: ["FL", "FR", "RL", "RR"]
+  limb_endeff_names: ["FL_calf", "FR_calf", "RL_calf", "RR_calf"]
+  limb_endeff_link_names: ["FL_foot_fixed", "FR_foot_fixed", "RL_foot_fixed", "RR_foot_fixed"]
+
+  nominal_joint_configuration:
+    [
+      0., 0.75, -1.5, 
+      0., 0.75, -1.5, 
+      0., 0.75, -1.5, 
+      0., 0.75, -1.5,
+    ]
+    
+  nominal_joint_velocity:
+    [
+      0., 0., 0., 
+      0., 0., 0., 
+      0., 0., 0., 
+      0., 0., 0.,
+    ]
+  
+  # this is required as raisimpy cant fetch joint limits
+  joint_torque_limits: [
+    20.0, 55.0, 55.0,
+    20.0, 55.0, 55.0,
+    20.0, 55.0, 55.0,
+    20.0, 55.0, 55.0,
+  ]
+  
+  joint_kp: 25.0
+  joint_kd: 1.0
+
+################################################################################
+# bio gait
+################################################################################
+bio_gait:
+  leg_length: 0.4
+  g: 9.81
+  foot_offset: 0.02
+  clearance_ratio: 0.3
+  foot_delta_x_limit: 0.30
+  foot_delta_y_limit: 0.20
+  raibert_kp: 0.03
+  init_base_pos: [0.0, 0.0, 0.2926]
+  init_base_quat: [0.0, 0.0, 0.0, 1.0]
+  leg_endeff_rel_pos: [
+    [ 0.183,  0.132, -0.2726],  # FL_toe
+    [ 0.183, -0.132, -0.2726],  # FR_toe
+    [-0.183,  0.132, -0.2726],  # RL_toe
+    [-0.183, -0.132, -0.2726],  # RR_toe
+  ]
+  hip_rel_pos: [
+    [ 0.183,  0.132,  0.],  # FL
+    [ 0.183, -0.132,  0.],  # FR
+    [-0.183,  0.132,  0.],  # RL
+    [-0.183, -0.132,  0.],  # RR
+  ]
+  mode: "BIOSYNCSTATIC"
+
+################################################################################
+# control policy
+################################################################################
+loco_policy:
+  policy_path: "/policies/pi_loco/"
+  weights_name: "full.pt"
+  mean_name: "mean.csv"
+  var_name: "var.csv"
+  name:
+  ob_dim: 69
+  act_dim: 12
+  action_std: 0.8
+  gc: [ 0., 0.75, -1.5, 
+        0., 0.75, -1.5, 
+        0., 0.75, -1.5, 
+        0., 0.75, -1.5,]
+  gv: [ 0., 0., 0., 
+        0., 0., 0., 
+        0., 0., 0., 
+        0., 0., 0.,]
+  policy_net: [512, 256, 128]
+  obs_structure: ["baseRot",
+                  "jointPos",
+                  "baseAngVel",
+                  "jointVel",
+                  "baseLinVel",
+                  "velCmd",
+                  "jointTrq",
+                  "feetContact",
+                  "baseHeight",
+                  "desFeetContact",
+                  "refFootZ",
+                  "refFootX",
+                  "refFootY",]
+
+################################################################################
+# gait selection policy
+################################################################################
+gait_selection_policy:
+  policy_path: "/policies/pi_gs/"
+  weights_name: "full.pt"
+  mean_name: "mean.csv"
+  var_name: "var.csv"
+  ob_dim: 66
+  act_dim: 8
+  action_std: 0.
+  action_mean: 0.
+  policy_net: [512, 256, 128]
+  obs_structure: ["desFeetContact",
+                  "feetContact",
+                  "velCmd",
+                  "jointTrq",
+                  "baseRot",
+                  "baseLinVel",
+                  "baseAngVel",
+                  "gsAction",
+                  "refFootZ",
+                  "jointPos",
+                  "jointVel",
+                  "accCmd",
+                  "frGaitStability",
+                  "transFlag",]
+
