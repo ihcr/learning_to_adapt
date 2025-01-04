@@ -2,7 +2,7 @@
 
 We present a bio-inspired quadruped locomotion framework that exhibits exemplary adaptability, capable of zero-shot deployment in complex environments and stability recovery on unstable terrain without the use of extra-perceptive sensors. Through its development we also shed light on the intricacies of animal locomotion strategies, in turn supporting the notion that findings within biomechanics and robotics research can mutually drive progress in both fields.
 
-Within this repository, you will find sample demos of our framework deployed on a range of terrains while realising a diverse range of gaits for preserving efficiency and stability.
+This repository acts to supplement our paper and as such here you will find sample demos of our framework deployed on a range of terrains while realising a diverse range of gaits for preserving efficiency and stability. We also provide all data used to generate the figures within the paper.
 
 -------------------
 
@@ -62,3 +62,6 @@ The demos available are as follows:
     - All gaits are manually cycled through to demonstrate the diverse set of gaits the locomotion policy is capable of deploying.
 - `allgaits_terr`
     - The same as `allgaits` but with the addition of rough terrain.
+    
+## Data
+Within this repository we have also provided all data used to generate the figures within the paper. This data can be found within the `data` folder and is organised with the same labels as the paper.
