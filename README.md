@@ -43,7 +43,7 @@ Once the code has been compiled and locally installed, you can source .bash file
 ```
 
 ## Running Demos
-To run a demo, in one terminal launch the Raisim visualiser of your choise (raisimUnity is recommended) and in another terminal run the following command, replacing `<demo_name>` with the demo you want to run:
+To run a demo, in a new terminal (not the one where you sourced the .bash file) terminal launch the Raisim visualiser of your choise (raisimUnity is recommended) and in the terminal where the .bash file was sourced run the following command, replacing `<demo_name>` with the demo you want to run:
 ```
 python3 src/learning_to_adapt/scripts/run_demo.py /configs/loco_bio_gs_unified.yaml <demo_name>
 ```
