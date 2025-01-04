@@ -20,9 +20,9 @@ Within this repository, you will find sample demos of our framework deployed on 
 | [Raisim](https://raisim.com/) | \>=1.1.6 |
 | [PyTorch](https://pytorch.org/) | Platform Specific (tested with 1.10.2+cu113) |
 | [Colcon](https://colcon.readthedocs.io/en/released/) | - |
-| [Pybind11](https://pybind11.readthedocs.io/en/stable/index.html) | - |
-| [scipy](https://scipy.org/) | - |
-| [numpy](https://numpy.org/) | - |
+| [Pybind11](https://pybind11.readthedocs.io/en/stable/index.html) | \>=2.3.4 |
+| [scipy](https://scipy.org/) | \>=1.10.1 |
+| [numpy](https://numpy.org/) | \>=1.24.2 |
 | [Eigen3](https://eigen.tuxfamily.org/index.php?title=Main_Page) | - |
 
 ### Workspace Setup and Install
