@@ -44,6 +44,9 @@ class EngineInterface:
     def create_static_box(self, xBox, yBox, zBox, xPos, yPos, zPos):
         self._wrapper.create_static_box(xBox, yBox, zBox, xPos, yPos, zPos)
         
+    def create_dynamic_box(self, box_dim, box_pos, box_ori, box_mass):
+        self._wrapper.create_dynamic_box(box_dim, box_pos, box_ori, box_mass)
+        
     def create_new_height_map(self, freq, z_scale, y_size, x_size, y_samples, x_samples, octaves, lacunarity, gain, x_pos, y_pos):
         self._wrapper.create_new_height_map(freq, z_scale, y_size, x_size, y_samples, x_samples, octaves, lacunarity, gain, x_pos, y_pos)
 

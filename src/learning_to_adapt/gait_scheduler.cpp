@@ -136,8 +136,6 @@ void GaitScheduler::setupSwingFootTrajGen(const double clearance_ratio, const do
 
 void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, const Eigen::Ref<const Eigen::VectorXd>& base_pose, const Eigen::Ref<const Eigen::VectorXd>& base_vel, const Eigen::Ref<const Eigen::VectorXd>& foot_heights)
 {
-    //std::cout << "lin_vel: \n" << lin_vel << std::endl;
-    //std::cout << "ang_vel: \n" << ang_vel << std::endl;
     
     if (lin_vel[0] > 0) {
         fr = pow(lin_vel[0],2)/(g_*height_);
@@ -159,11 +157,9 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
         fr = pow(lin_vel[0],2)/(g_*height_);
         if (fr > data_.fr_bounds[1]){
             user_cmd_.gait_type = user_cmd_.gait_type + 1;
-            std::cout << "trigger up\n" << std::endl;
         }
         if (fr < data_.fr_bounds[0]){
             user_cmd_.gait_type = user_cmd_.gait_type - 1;
-            std::cout << "trigger down\n" << std::endl;
         }
         // Modify the gait with settings
         this->modifyGait();
@@ -183,7 +179,6 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
             if (trans_cntr_ > data_.B and data_.gait_name == "STAND"){
                 stand_to_walk = true;
                 data_.trans_flag = 0;
-                std::cout << "\nTransition finished! " << di << " " << B << std::endl;
                 user_cmd_.gait_type = user_cmd_.gait_type + 1;
                 this->modifyGait();
                 gait_change = false;
@@ -224,13 +219,11 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
             if (di <= 0) {
                 di = 1;
             }
-            // std::cout << di << std::endl;
             trans_cntr_ = trans_cntr_ + di;
             data_.trans_flag = 1;
             if (trans_cntr_ > data_.B and data_.gait_name == "STAND"){
                 stand_to_walk = true;
                 data_.trans_flag = 0;
-                std::cout << "\nTransition finished! " << di << " " << B << std::endl;
                 user_cmd_.gait_type = user_cmd_.gait_type + 1;
                 this->modifyGait();
                 gait_change = false;
@@ -281,8 +274,6 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
         if (trans_cntr_ > data_.B and data_.gait_name == "STAND"){
             stand_to_walk = true;
             data_.trans_flag = 0;
-            std::cout << "\nNext gait is "<< dataNext_.gait_name << std::endl;
-            std::cout << "\nTransition finished! " << di << " " << B << std::endl;
             this->modifyGait();
             gait_change = false;
             trans_cntr_ = 0;
@@ -493,7 +484,6 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
                     stand_to_walk = false;
                 }
                 data_.trans_flag = 0;
-                std::cout << "\nTransition finished! " << di << " " << B << std::endl;
                 user_cmd_.gait_type = user_cmd_.gait_type + 1;
                 this->modifyGait();
                 gait_change = false;
@@ -512,7 +502,6 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
                     stand_to_walk = false;
                 }
                 data_.trans_flag = 0;
-                std::cout << "\nTransition finished! " << di << " " << B << std::endl;
                 user_cmd_.gait_type = user_cmd_.gait_type - 1;
                 this->modifyGait();
                 gait_change = false;
@@ -533,7 +522,6 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
                     stand_to_walk = false;
                 }
                 data_.trans_flag = 0;
-                std::cout << "\nTransition finished! " << di << " " << B << std::endl;
                 user_cmd_.gait_type = user_cmd_.gait_type + 1;
                 this->modifyGait();
                 gait_change = false;
@@ -552,7 +540,6 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
                     stand_to_walk = false;
                 }
                 data_.trans_flag = 0;
-                std::cout << "\nTransition finished! " << di << " " << B << std::endl;
                 user_cmd_.gait_type = user_cmd_.gait_type - 1;
                 this->modifyGait();
                 gait_change = false;
@@ -573,9 +560,6 @@ void GaitScheduler::step(ConstRefVector3d lin_vel, ConstRefVector3d ang_vel, con
                     stand_to_walk = false;
                 }
                 data_.trans_flag = 0;
-                std::cout << "\nNext gait is "<< dataNext_.gait_name << std::endl;
-                std::cout << "phase target: " << phaseTarget(0) << " " << phaseTarget(1) << " "  << phaseTarget(2) << " "  << phaseTarget(3) << std::endl;
-                std::cout << "\nTransition finished! " << di << " " << B  << " " << data_.C << std::endl;
                 this->modifyGait();
                 gait_change = false;
                 trans_cntr_ = 0;
@@ -682,7 +666,7 @@ void GaitScheduler::createNextGait(GaitType gaitId) {
             break;
             
         case GaitType::TROT_RUN:
-            dataNext_.gait_name = "TROT_RUN";
+            dataNext_.gait_name = "RUN";
             dataNext_.Cmax = 2;
             dataNext_.gait_enabled << 1, 1, 1, 1;
             dataNext_.period_time_nominal = 0.3;
@@ -786,7 +770,7 @@ void GaitScheduler::createNextGait(GaitType gaitId) {
             break;
             
         case GaitType::UNNATURAL:
-            dataNext_.gait_name = "UNNATURAL";
+            dataNext_.gait_name = "LIMP";
             dataNext_.gait_enabled << 1, 1, 1, 1;
             dataNext_.period_time_nominal = 0.4;
             dataNext_.initial_phase = 0.0;
@@ -843,7 +827,6 @@ void GaitScheduler::createNextGait(GaitType gaitId) {
         // Find the total swing time over the gait cycle
         dataNext_.time_swing(idx) = dataNext_.period_time(idx) * (1.0 - dataNext_.switching_phase(idx));
     }
-    //std::cout << "phase: " << dataNext_.phase_offset(0) << " " << dataNext_.phase_offset(1) << " "  << dataNext_.phase_offset(2) << " "  << dataNext_.phase_offset(3) << std::endl;
 }
 
 void GaitScheduler::calcTransParams() {
@@ -862,21 +845,17 @@ void GaitScheduler::calcTransParams() {
     }
     // bio static
     if (trans_mode_ == "BIOSYNCSTATIC"){
-        //data_.C = abs(1 - (fr/1.)) * data_.Cmax;
         data_.C = exp(-2*fr);
         data_.B = round(((data_.L + dataNext_.L)/2) * data_.C);
     }
     if (data_.gait_name == "STAND" or dataNext_.gait_name == "STAND") {
         data_.B = 1;
     }
-    //if (dataNext_.gait_name == "INTERMEDIATEGAIT") {
-    //    data_.B = 0.1/0.002;
-    //}
 }
 
 void GaitScheduler::createGait()
 {
-    std::cout << "[quad_gait/GaitScheduler::createGait] Transitioning gait from " 
+    std::cout << "Transitioning gait from " 
         << data_.gait_name << " to ";
     // Case structure gets the appropriate parameters
     switch (data_.next_gait) {
@@ -1018,7 +997,7 @@ void GaitScheduler::createGait()
 
         case GaitType::TROT_RUN:
             // Current gait data
-            data_.gait_name = "TROT_RUN";
+            data_.gait_name = "RUN";
             data_.Cmax = 2;
             data_.gait_enabled << 1, 1, 1, 1;
             data_.period_time_nominal = 0.3;
@@ -1032,7 +1011,7 @@ void GaitScheduler::createGait()
             data_.FrStab = g_/(height_*pow(1/(data_.period_time_nominal*data_.switching_phase_nominal),2));
             
             // Initial gait data before transition
-            dataInit_.gait_name = "TROT_RUN";
+            dataInit_.gait_name = "RUN";
             dataInit_.gait_enabled << 1, 1, 1, 1;
             dataInit_.period_time_nominal = 0.3;
             dataInit_.initial_phase = 0.0;
@@ -1218,7 +1197,7 @@ void GaitScheduler::createGait()
             break;
             
         case GaitType::UNNATURAL:
-            data_.gait_name = "UNNATURAL";
+            data_.gait_name = "LIMP";
             data_.gait_enabled << 1, 1, 1, 1;
             data_.period_time_nominal = 0.4;
             data_.initial_phase = 0.0;
@@ -1228,7 +1207,7 @@ void GaitScheduler::createGait()
             data_.overrideable = 1;
             data_.FrStab = g_/(height_*pow(1/(data_.period_time_nominal*data_.switching_phase_nominal),2));
             
-            dataInit_.gait_name = "UNNATURAL";
+            dataInit_.gait_name = "LIMP";
             dataInit_.gait_enabled << 1, 1, 1, 1;
             dataInit_.period_time_nominal = 0.4;
             dataInit_.initial_phase = 0.0;
@@ -1304,7 +1283,6 @@ void GaitScheduler::createGait()
 
     // Calculate the auxilliary gait information
     this->calcAuxiliaryGaitData();
-    std::cout << "phase: " << data_.phase_variable(0) << " " << data_.phase_variable(1) << " "  << data_.phase_variable(2) << " "  << data_.phase_variable(3) << std::endl;
 }
 
 void GaitScheduler::calcAuxiliaryGaitData()

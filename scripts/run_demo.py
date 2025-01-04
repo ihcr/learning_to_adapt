@@ -18,11 +18,29 @@ rootdir = os.path.dirname(os.path.dirname(
         os.path.abspath(inspect.getfile(inspect.currentframe()))))
         
 def main(argv):
-    # Load configuration file
-    if len(argv) == 1:
+    # Load configuration file and demo id
+    if len(argv) == 2:
         cfg_file = argv[0]
+        demo = argv[1]
+        print("Running demo:", demo)
     else:
-        raise RuntimeError("Usage: python3 src/learning_to_adapt/scripts/run_demo.py /<config file within root folder>")
+        raise RuntimeError("Usage: python3 src/learning_to_adapt/scripts/run_demo.py /<config file within root folder> <demo name>")
+    if demo == "sprint":
+        demo_id = 0
+    elif demo == "sprint_terr":
+        demo_id = 1
+    elif demo == "stresstest":
+        demo_id = 2
+    elif demo == "stresstest_terr":
+        demo_id = 3
+    elif demo == "planks":
+        demo_id = 4
+    elif demo == "allgaits":
+        demo_id = 5
+    elif demo == "allgaits_terr":
+        demo_id = 6
+    else:
+        raise RuntimeError("Invalid demo name.")
     input_streams = [sys.stdin]
     configs = load_yaml(rootdir + cfg_file)
     
@@ -48,6 +66,7 @@ def main(argv):
         model_path_robot = robot_path
     )
     sim.add_robot(configs, robot_path, 0, 0)
+    sim.reset()
     sim.initialise_server()
     
     # Create a gait scheduler
@@ -131,14 +150,8 @@ def main(argv):
     foot_frame_names = configs['robot']['limb_endeff_link_names']
     time.sleep(5)
     
-    # TODO: clean up
     sim.create_tracking_camera()
     time.sleep(1)
-    start_time = sim.get_time_since_start()
-    time.sleep(control_ll_dt)
-    current_time = start_time
-    track_time = start_time
-    new_vel = 0
     loop_count = 0
     last_control_time = time.time()
     last_action_time = time.time()
@@ -146,10 +159,42 @@ def main(argv):
     policy_action_loco = np.array(configs['robot']['nominal_joint_configuration'])
     policy_action_gs = 0
     current_time = 0
+    prev_gait = "STAND"
+    prevVelCmdGS = np.zeros(3)
+    accVelCmdGS = np.zeros(3)
+    prevVelCmdDC = np.zeros(3)
+    accVelCmdDC = np.zeros(3)
     sim.reset()
     
+    # set up terrain
+    if demo_id == 1 or demo_id == 3 or demo_id == 6:
+        terr_freq = 3
+        terr_height_curr = 0.3
+        sim.create_new_height_map(terr_freq, terr_height_curr, 40, 40, 1000, 1000, 4, 2, 0.25, 0, 0)
+    if demo_id == 4:
+        box_dim = np.array([0.1, 1.5, 0.023])
+        box_mass = 1.25
+        sep = 1.25
+        rot = -10
+        for i in range(2):
+            box_pos1 = np.array([0.6+(i*sep), 0, 0.1])
+            box_ori1 = np.array([0,0,20+(i*rot)])
+            box_pos2 = np.array([0.8+(i*sep), 0, 0.15])
+            box_ori2 = np.array([0,0,-20+(i*rot)])
+            box_pos3 = np.array([0.8+(i*sep), -0.25, 0.2])
+            box_ori3 = np.array([0,0,-45+(i*rot)])
+            box_pos4 = np.array([1.0+(i*sep), 0.25, 0.25])
+            box_ori4 = np.array([0,0,45+(i*rot)])
+            sim.create_dynamic_box(box_dim, box_pos1, box_ori1, box_mass)
+            sim.create_dynamic_box(box_dim, box_pos2, box_ori2, box_mass)
+            sim.create_dynamic_box(box_dim, box_pos3, box_ori3, box_mass)
+            sim.create_dynamic_box(box_dim, box_pos4, box_ori4, box_mass)
+    
     # set gait id
-    manual_gait_id = 9
+    if demo_id == 5 or demo_id == 6:
+        manual_gait_id = 0
+    else:
+        manual_gait_id = 9
     user_cmd = UserCommand()
     user_cmd.gait_type = user_cmd.gait_type = active_gaits[manual_gait_id]
     user_cmd.gait_override = 1
@@ -169,37 +214,32 @@ def main(argv):
                                     init_base_quat)
     
     # distance constrained velocity cmd
-    exp_distance = 20 #20 m
-    exp_max_x_vel = 2 #3 m/s
-    exp_max_yaw_vel = 0
-    exp_omega = (2*exp_max_x_vel)/exp_distance
-    exp_total_time = (np.pi*exp_distance)/(2*exp_max_x_vel)
-    exp_total_steps = (np.pi*exp_distance)/(2*exp_max_x_vel*control_ll_dt)
-    exp_curr_step = 0
-    yaw_theta = 0
-    yaw_dtheta = (2*np.pi)/exp_total_steps
-    
-    # TODO: cleanup 
-    prev_gait = "STAND"
-    stand_counter = 0
-    est_reset = False
-    prevVelCmdGS = np.zeros(3)
-    accVelCmdGS = np.zeros(3)
-    prevVelCmdDC = np.zeros(3)
-    accVelCmdDC = np.zeros(3)
-    dEnergySum = 0
-    WEXT = 0
-    prevEnergyK = sim.get_kinetic_energy()
-    prevEnergyP = sim.get_potential_energy()
-    cmd_err_mean = 0
-    CoT = 0
-    musculoskeletal = 0
-    cont_err = 0
-    cont_forces = 0
-    stride_time = [0,0,0,0]
-    stride_time_data = [0,0,0,0]
-    curr_foot_contact = [1,1,1,1]
-    prev_foot_contact = [1,1,1,1]
+    if demo_id == 0 or demo_id == 1 or demo_id == 4:
+        if demo_id == 0 or demo_id == 1:
+            exp_distance = 20
+            exp_max_x_vel = 2
+            exp_max_yaw_vel = 0
+        elif demo_id == 4:
+            exp_distance = 5
+            exp_max_x_vel = 1.9
+            exp_max_yaw_vel = 0
+        exp_omega = (2*exp_max_x_vel)/exp_distance
+        exp_total_time = (np.pi*exp_distance)/(2*exp_max_x_vel)
+        exp_total_steps = (np.pi*exp_distance)/(2*exp_max_x_vel*control_ll_dt)
+        exp_curr_step = 0
+        yaw_theta = 0
+        yaw_dtheta = (2*np.pi)/exp_total_steps
+    # stress test velocity cmd params
+    if demo_id == 2 or demo_id == 3:
+        test_t = 10
+        theta_x = 0
+        dtheta_x = math.pi/(test_t/control_ll_dt)
+        theta_yaw = 0
+        dtheta_yaw = math.pi/((test_t/2)/control_ll_dt)
+        traj_n = 0
+        max_x_vel = 2.1
+        max_yaw_vel = 1.0
+        
     
     start_time = time.time()
     
@@ -222,26 +262,109 @@ def main(argv):
             cont_frc = sim.get_raw_limb_contact_forces(0)
             
             # update velociy cmd
-            
-            if current_time <= 1:
-                vel_cmd[0] = 0
-                vel_cmd[2] = 0
-                if manual_gait_id != 9:
-                    user_cmd.gait_type = 0
-            elif current_time > 1 and current_time <= (exp_total_time+1):
-                exp_curr_step += 1
-                yaw_theta = yaw_theta + yaw_dtheta
-                vel_cmd[0] = exp_max_x_vel*math.sin(exp_omega*((time.time()-start_time)-1))
-                vel_cmd[2] = exp_max_yaw_vel*math.sin(yaw_theta)
-                if manual_gait_id != 9:
-                    user_cmd.gait_type = active_gaits[manual_gait_id]
-            elif current_time > (exp_total_time+1) and current_time <= (exp_total_time+2):
-                vel_cmd[0] = 0
-                vel_cmd[2] = 0
-                if manual_gait_id != 9:
-                    user_cmd.gait_type = 0
-            else:
-                break
+            if demo_id == 5 or demo_id == 6:
+                if current_time >= 1 and current_time < 3.2:
+                    manual_gait_id = 4
+                elif current_time >= 3.2 and current_time < 5.4:
+                    manual_gait_id = 1
+                elif current_time >= 5.4 and current_time < 7.6:
+                    manual_gait_id = 3
+                elif current_time >= 7.6 and current_time < 9.8:
+                    manual_gait_id = 2
+                elif current_time >= 9.8 and current_time < 12:
+                    manual_gait_id = 5
+                elif current_time >= 12 and current_time < 14.2:
+                    manual_gait_id = 7
+                elif current_time >= 14.2 and current_time < 16.4:
+                    manual_gait_id = 6
+                else:
+                    manual_gait_id = 0
+                user_cmd.gait_type = active_gaits[manual_gait_id]
+                if current_time <= 1:
+                    vel_cmd[0] = 0
+                    vel_cmd[2] = 0
+                elif current_time >= 1. and current_time < 16.4:
+                    vel_cmd[0] = 0.5
+                    vel_cmd[2] = 0
+                elif current_time >= 16.4 and current_time <= 16.4+1:
+                    vel_cmd[0] = 0
+                    vel_cmd[2] = 0
+                else:
+                    break
+            elif demo_id == 0 or demo_id == 1 or demo_id == 4:
+                if current_time <= 1:
+                    vel_cmd[0] = 0
+                    vel_cmd[2] = 0
+                    if manual_gait_id != 9:
+                        user_cmd.gait_type = 0
+                elif current_time > 1 and current_time <= (exp_total_time+1):
+                    exp_curr_step += 1
+                    yaw_theta = yaw_theta + yaw_dtheta
+                    vel_cmd[0] = exp_max_x_vel*math.sin(exp_omega*((time.time()-start_time)-1))
+                    vel_cmd[2] = exp_max_yaw_vel*math.sin(yaw_theta)
+                    if manual_gait_id != 9:
+                        user_cmd.gait_type = active_gaits[manual_gait_id]
+                elif current_time > (exp_total_time+1) and current_time <= (exp_total_time+2):
+                    vel_cmd[0] = 0
+                    vel_cmd[2] = 0
+                    if manual_gait_id != 9:
+                        user_cmd.gait_type = 0
+                else:
+                    break
+            elif demo_id == 2 or demo_id == 3:
+                if theta_x > math.pi:
+                    traj_n += 1
+                    if traj_n > 6:
+                        break
+                    theta_x = 0
+                    theta_yaw = 0
+                if traj_n == 0:
+                    test_t = 10
+                    dtheta_x = math.pi/(test_t/control_ll_dt)
+                    dtheta_yaw = math.pi/((test_t/2)/control_ll_dt)
+                    vel_cmd[0] = math.sin(theta_x)*max_x_vel
+                    vel_cmd[2] = math.sin(theta_yaw)*max_yaw_vel
+                    theta_x = theta_x + dtheta_x
+                    theta_yaw = theta_yaw + dtheta_yaw
+                elif traj_n == 1:
+                    test_t = 5
+                    dtheta_x = math.pi/(test_t/control_ll_dt)
+                    dtheta_yaw = math.pi/((test_t/2)/control_ll_dt)
+                    vel_cmd[0] = math.sin(theta_x)*max_x_vel
+                    vel_cmd[2] = math.sin(theta_yaw)*max_yaw_vel
+                    theta_x = theta_x + dtheta_x
+                    theta_yaw = theta_yaw + dtheta_yaw
+                elif traj_n == 2:
+                    test_t = 2
+                    dtheta_x = math.pi/(test_t/control_ll_dt)
+                    vel_cmd[0] = 0.
+                    vel_cmd[2] = 0
+                    theta_x = theta_x + dtheta_x
+                elif traj_n == 3:
+                    test_t = 2
+                    dtheta_x = math.pi/(test_t/control_ll_dt)
+                    vel_cmd[0] = 1.5
+                    vel_cmd[2] = 0
+                    theta_x = theta_x + dtheta_x
+                elif traj_n == 4:
+                    test_t = 2
+                    dtheta_x = math.pi/(test_t/control_ll_dt)
+                    vel_cmd[0] = 0.1
+                    vel_cmd[2] = 0
+                    theta_x = theta_x + dtheta_x
+                elif traj_n == 5:
+                    test_t = 2
+                    dtheta_x = math.pi/(test_t/control_ll_dt)
+                    vel_cmd[0] = 2.5
+                    vel_cmd[2] = 0
+                    theta_x = theta_x + dtheta_x
+                elif traj_n == 6:
+                    test_t = 2
+                    dtheta_x = math.pi/(test_t/control_ll_dt)
+                    vel_cmd[0] = 0.
+                    vel_cmd[2] = 0
+                    theta_x = theta_x + dtheta_x
+                    
             des_lin_vel = np.array([vel_cmd[0], vel_cmd[1], 0.0])
             des_ang_vel = np.array([0.0, 0.0, vel_cmd[2]])
             
@@ -282,7 +405,6 @@ def main(argv):
         while loop_end_time-loop_start_time < simulation_dt:
             loop_end_time = time.time()
         current_time = sim.get_time_since_start()
-        track_time = track_time + simulation_dt
         
         loop_count = loop_count + 1
 

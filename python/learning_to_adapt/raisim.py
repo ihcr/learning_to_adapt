@@ -110,6 +110,19 @@ class RaiSimWrapper:
         self.box_list.append(self._world.addBox(xBox, yBox, zBox, 1.0))
         self.box_list[-1].setPosition(xPos, yPos, zPos)
         self.box_list[-1].setBodyType(raisim.BodyType.STATIC)
+        
+    def create_dynamic_box(self, box_dim, box_pos, box_ori, box_mass):
+        self.box_list.append(self._world.addBox(box_dim[0], box_dim[1], box_dim[2], box_mass))
+        self.box_list[-1].setPosition(box_pos[0], box_pos[1], box_pos[2])
+        rot = R.from_euler('xyz', box_ori.tolist(), degrees=True)
+        rot_quat = rot.as_quat()
+        w = rot_quat[3]
+        x = rot_quat[0]
+        y = rot_quat[1]
+        z = rot_quat[2]
+        rot_quat = np.array([w,x,y,z])
+        self.box_list[-1].setOrientation(rot_quat)
+        self.box_list[-1].setBodyType(raisim.BodyType.DYNAMIC)
     
     def create_tracking_sphere(self):
         self.visual_sphere = self._server.addVisualSphere("tracking_sphere", 0.05, 1., 0., 0., 1.)
