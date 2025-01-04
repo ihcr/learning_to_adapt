@@ -4,6 +4,8 @@ We present a bio-inspired quadruped locomotion framework that exhibits exemplary
 
 This repository acts to supplement our paper and as such here you will find sample demos of our framework deployed on a range of terrains while realising a diverse range of gaits for preserving efficiency and stability. We also provide all data used to generate the figures within the paper.
 
+A preprint of the paper is available here: https://arxiv.org/abs/2412.09440
+
 -------------------
 
 ## Installation Guide
