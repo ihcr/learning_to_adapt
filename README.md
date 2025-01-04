@@ -17,7 +17,7 @@ Within this repository, you will find sample demos of our framework deployed on 
 ### Dependencies
 | Software/Package | Version |
 |:--:|:--:|
-| [Raisim](https://raisim.com/) | \>=1.1.6 |
+| [RaiSim](https://raisim.com/) | \>=1.1.6 |
 | [PyTorch](https://pytorch.org/) | Platform Specific (tested with 1.10.2+cu113) |
 | [Colcon](https://colcon.readthedocs.io/en/released/) | - |
 | [Pybind11](https://pybind11.readthedocs.io/en/stable/index.html) | \>=2.3.4 |
