@@ -67,3 +67,17 @@ The demos available are as follows:
     
 ## Data
 Within this repository we have also provided all data used to generate the figures within the paper. This data can be found within the `data` folder and is organised with the same labels as the paper.
+
+## Cite
+To reference this work, please use the following citation:
+```
+@misc{humphreys2024learningadaptbioinspiredgait,
+      title={Learning to Adapt: Bio-Inspired Gait Strategies for Versatile Quadruped Locomotion}, 
+      author={Joseph Humphreys and Chengxu Zhou},
+      year={2024},
+      eprint={2412.09440},
+      archivePrefix={arXiv},
+      primaryClass={cs.RO},
+      url={https://arxiv.org/abs/2412.09440}, 
+}
+```
