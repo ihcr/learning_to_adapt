@@ -1,4 +1,4 @@
-# Learning to Adapt
+# Learning to Adapt through Bio-Inspired Gait Strategies for Versatile Quadruped Locomotion
 
 We present a bio-inspired quadruped locomotion framework that exhibits exemplary adaptability, capable of zero-shot deployment in complex environments and stability recovery on unstable terrain without the use of extra-perceptive sensors. Through its development we also shed light on the intricacies of animal locomotion strategies, in turn supporting the notion that findings within biomechanics and robotics research can mutually drive progress in both fields.
 
@@ -72,7 +72,7 @@ Within this repository we have also provided all data used to generate the figur
 To reference this work, please use the following citation:
 ```
 @misc{humphreys2024learningadaptbioinspiredgait,
-      title={Learning to Adapt: Bio-Inspired Gait Strategies for Versatile Quadruped Locomotion}, 
+      title={Learning to Adapt through Bio-Inspired Gait Strategies for Versatile Quadruped Locomotion}, 
       author={Joseph Humphreys and Chengxu Zhou},
       year={2024},
       eprint={2412.09440},
